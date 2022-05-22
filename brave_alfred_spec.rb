@@ -29,7 +29,7 @@ class BraveAlfredTest < Minitest::Test
       test_profiles.each do |directory, name|
         expected_cmd = "#{BraveAlfred::EXECUTABLE} --profile-directory=\"#{directory}\""
 
-        assert_includes(items, { title: name, arg: expected_cmd })
+        assert_includes(items, { title: name, subtitle: "Open Brave Browser as #{name}" , arg: expected_cmd })
       end
     end
   end

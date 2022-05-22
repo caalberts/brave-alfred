@@ -25,6 +25,7 @@ class BraveAlfred
     profiles.map do |profile|
       {
         title: profile.name,
+        subtitle: "Open Brave Browser as #{profile.name}",
         arg: launcher_for(profile)
       }
     end

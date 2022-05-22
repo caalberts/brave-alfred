@@ -22,12 +22,14 @@ class BraveAlfred
   attr_reader :home
 
   def create_items
-    profiles.map do |profile|
-      {
-        title: profile.name,
-        subtitle: "Open Brave Browser as #{profile.name}",
-        arg: launcher_for(profile)
-      }
+    profiles
+      .sort_by { |profile| profile.name }
+      .map do |profile|
+        {
+          title: profile.name,
+          subtitle: "Open Brave Browser as #{profile.name}",
+          arg: launcher_for(profile)
+        }
     end
   end
 

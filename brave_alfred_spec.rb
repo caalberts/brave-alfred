@@ -56,16 +56,27 @@ class BraveAlfredTest < Minitest::Test
     end
   end
 
-  def test_execute_incognito_returns_items_with_brave_cli_incognito_launcher
+  def test_execute_incognito_returns_brave_cli_incognito_launcher
     with_stub_profiles_in_home do |home|
       result = BraveAlfred::Engine.new(command: BraveAlfred::INCOGNITO, home: home).execute
       items = result[:items]
 
-      test_profiles.each do |directory, name|
-        expected_cmd = "#{BraveAlfred::EXECUTABLE} --profile-directory=\"#{directory}\" --incognito"
+      expected_cmd = "#{BraveAlfred::EXECUTABLE} --incognito"
 
-        assert_includes(items, { title: name, subtitle: "Open Brave Browser as #{name} in private" , arg: expected_cmd })
-      end
+      assert_equal(1, items.length)
+      assert_includes(items, { title: 'Incognito', subtitle: "Open Brave Browser as Incognito" , arg: expected_cmd })
+    end
+  end
+
+  def test_execute_incognito_with_url_returns_incognito_launcher_with_url
+    with_stub_profiles_in_home do |home|
+      result = BraveAlfred::Engine.new(command: BraveAlfred::INCOGNITO, home: home, param: test_url).execute
+      items = result[:items]
+
+      expected_cmd = %Q{#{BraveAlfred::EXECUTABLE} "#{test_url}" --incognito}
+
+      assert_equal(1, items.length)
+      assert_includes(items, { title: 'Incognito', subtitle: "Open Brave Browser as Incognito" , arg: expected_cmd })
     end
   end
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'json'
+require 'singleton'
 
 module BraveAlfred
   APPLICATION_SUPPORT_PATH = 'Library/Application Support/BraveSoftware/Brave-Browser'
@@ -23,7 +24,7 @@ module BraveAlfred
       @command = command
       @home = home
       @param = param
-      @profiles = load_profiles
+      @profile_factory = ProfileFactory.new(command: command, home: home)
       @item_factory = ItemFactory.new(command: command, param: param)
     end
 
@@ -36,39 +37,72 @@ module BraveAlfred
     attr_reader :home, :command, :param, :profiles, :item_factory
 
     def create_items
+      @profiles = @profile_factory.load_profiles
+
       profiles.map do |profile|
         item_factory.item_for(profile)
       end
     end
+  end
+
+  class ProfileFactory
+    def initialize(command:, home:)
+      @command = command
+      @home = home
+    end
 
     def load_profiles
+      return [IncognitoProfile.instance] if command == INCOGNITO
+
       glob_pattern = "#{home}/#{APPLICATION_SUPPORT_PATH}/*/#{PREFERENCES_FILE}"
 
       Dir.glob(glob_pattern)
          .reject { |path| path.include?('System Profile') }
-         .map { |preference_path| Profile.from(preference_path) }
+         .map { |preference_path| Profile.new(preference_path) }
          .sort_by { |profile| profile.name }
     end
 
-    Profile = Struct.new(:name, :directory, keyword_init: true) do
-      GENERATED_PROFILES_MATCHER = %r{#{APPLICATION_SUPPORT_PATH}/(Default|Guest Profile|Profile [0-9]+)/#{PREFERENCES_FILE}}
+    private
 
-      def self.from(preference_path)
-        directory = GENERATED_PROFILES_MATCHER.match(preference_path)[1]
+    attr_reader :command, :home
+  end
 
-        raise ArgumentError if directory.nil?
+  class IncognitoProfile
+    include Singleton
 
-        self.new(name: parse_name(preference_path), directory: directory)
-      end
-
-      def self.parse_name(preference_path)
-        file = File.open(preference_path)
-
-        JSON.load(file).dig('profile', 'name')
-      ensure
-        file.close
-      end
+    def name
+      'Incognito'
     end
+
+    def directory
+      ''
+    end
+  end
+
+  class Profile
+    GENERATED_PROFILES_MATCHER = %r{#{APPLICATION_SUPPORT_PATH}/(Default|Guest Profile|Profile [0-9]+)/#{PREFERENCES_FILE}}
+
+    def initialize(path)
+      @path = path
+    end
+
+    def name
+      return @name unless @name.nil?
+
+      file = File.open(path)
+
+      JSON.load(file).dig('profile', 'name')
+    ensure
+      file.close
+    end
+
+    def directory
+      @directory ||= GENERATED_PROFILES_MATCHER.match(path)[1]
+    end
+
+    private
+
+    attr_reader :path
   end
 
   class ItemFactory
@@ -127,12 +161,8 @@ module BraveAlfred
   end
 
   class Incognito < Launch
-    def subtitle
-      super + " in private"
-    end
-
     def launcher
-      super + " --incognito"
+      "#{EXECUTABLE} #{url}--incognito"
     end
   end
 end

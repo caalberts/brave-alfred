@@ -10,9 +10,10 @@ class BraveAlfred
   LAUNCH = 'launch'
   INCOGNITO = 'incognito'
 
-  def initialize(command: LAUNCH, home: ENV['HOME'])
+  def initialize(command: LAUNCH, home: ENV['HOME'], param: nil)
     @command = command
     @home = home
+    @param = param
   end
 
   def execute
@@ -23,7 +24,7 @@ class BraveAlfred
 
   private
 
-  attr_reader :home, :command
+  attr_reader :home, :command, :param
 
   def create_items
     return [] unless command == LAUNCH || command == INCOGNITO
@@ -54,7 +55,7 @@ class BraveAlfred
   end
 
   def launcher_for(profile)
-    base = "#{EXECUTABLE} --profile-directory=\"#{profile.directory}\""
+    base = "#{EXECUTABLE} #{param.nil? ? '' : "\"#{param}\" " }--profile-directory=\"#{profile.directory}\""
     base += " --incognito" if command == INCOGNITO
     base
   end
@@ -82,5 +83,6 @@ end
 
 if $PROGRAM_NAME == __FILE__
   command = ARGV[0]
-  puts BraveAlfred.new(command: command).execute.to_json
+  param = ARGV[1]
+  puts BraveAlfred.new(command: command, param: param).execute.to_json
 end

@@ -34,6 +34,19 @@ class BraveAlfredTest < Minitest::Test
     end
   end
 
+  def test_execute_launch_with_url_returns_launcher_with_url
+    with_stub_profiles_in_home do |home|
+      result = BraveAlfred.new(command: BraveAlfred::LAUNCH, home: home, param: test_url).execute
+      items = result[:items]
+
+      test_profiles.each do |directory, name|
+        expected_cmd = %Q{#{BraveAlfred::EXECUTABLE} "#{test_url}" --profile-directory="#{directory}"}
+
+        assert_includes(items, { title: name, subtitle: "Open Brave Browser as #{name}" , arg: expected_cmd })
+      end
+    end
+  end
+
   def test_execute_launch_does_not_include_system_profile
     with_stub_profiles_in_home({ 'System Profile' => 'System'}) do |home|
       result = BraveAlfred.new(command: BraveAlfred::LAUNCH, home: home).execute
@@ -98,5 +111,9 @@ class BraveAlfredTest < Minitest::Test
       'Profile 2' => 'Cat Woman',
       'Guest Profile' => 'Guest',
     }
+  end
+
+  def test_url
+    'https://batcave.xyz'
   end
 end

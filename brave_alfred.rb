@@ -7,7 +7,10 @@ class BraveAlfred
   PREFERENCES_FILE = 'Preferences'
   EXECUTABLE = '"/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"'
 
-  def initialize(home = ENV['HOME'])
+  LAUNCH = 'launch'
+
+  def initialize(command: LAUNCH, home: ENV['HOME'])
+    @command = command
     @home = home
   end
 
@@ -19,9 +22,11 @@ class BraveAlfred
 
   private
 
-  attr_reader :home
+  attr_reader :home, :command
 
   def create_items
+    return [] unless command == LAUNCH
+
     profiles
       .sort_by { |profile| profile.name }
       .map do |profile|
@@ -67,5 +72,6 @@ class BraveAlfred
 end
 
 if $PROGRAM_NAME == __FILE__
-  puts BraveAlfred.new.execute.to_json
+  command = ARGV[0]
+  puts BraveAlfred.new(command: command).execute.to_json
 end

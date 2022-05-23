@@ -5,25 +5,25 @@ require_relative './brave_alfred'
 class BraveAlfredTest < Minitest::Test
   def test_execute_returns_a_hash_with_items_array
     with_stub_profiles_in_home do |home|
-      result = BraveAlfred.new(home).execute
+      result = BraveAlfred.new(home: home).execute
 
       assert_instance_of(Hash, result)
       assert_instance_of(Array, result[:items])
     end
   end
 
-  def test_execute_returns_as_many_items_as_there_are_profiles
+  def test_execute_launch_returns_as_many_items_as_there_are_profiles
     with_stub_profiles_in_home do |home|
-      result = BraveAlfred.new(home).execute
+      result = BraveAlfred.new(command: BraveAlfred::LAUNCH, home: home).execute
       items = result[:items]
 
       assert_equal(test_profiles.length, items.length)
     end
   end
 
-  def test_execute_returns_items_with_brave_cli_launcher
+  def test_execute_launch_returns_items_with_brave_cli_launcher
     with_stub_profiles_in_home do |home|
-      result = BraveAlfred.new(home).execute
+      result = BraveAlfred.new(command: BraveAlfred::LAUNCH, home: home).execute
       items = result[:items]
 
       test_profiles.each do |directory, name|
@@ -34,9 +34,9 @@ class BraveAlfredTest < Minitest::Test
     end
   end
 
-  def test_execute_does_not_include_system_profile
+  def test_execute_launch_does_not_include_system_profile
     with_stub_profiles_in_home({ 'System Profile' => 'System'}) do |home|
-      result = BraveAlfred.new(home).execute
+      result = BraveAlfred.new(command: BraveAlfred::LAUNCH, home: home).execute
       items = result[:items]
 
       assert_empty(items)

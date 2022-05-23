@@ -5,7 +5,7 @@ require_relative './brave_alfred'
 class BraveAlfredTest < Minitest::Test
   def test_execute_returns_a_hash_with_items_array
     with_stub_profiles_in_home do |home|
-      result = BraveAlfred.new(home: home).execute
+      result = BraveAlfred::Engine.new(home: home).execute
 
       assert_instance_of(Hash, result)
       assert_instance_of(Array, result[:items])
@@ -14,7 +14,7 @@ class BraveAlfredTest < Minitest::Test
 
   def test_execute_launch_returns_as_many_items_as_there_are_profiles
     with_stub_profiles_in_home do |home|
-      result = BraveAlfred.new(command: BraveAlfred::LAUNCH, home: home).execute
+      result = BraveAlfred::Engine.new(command: BraveAlfred::LAUNCH, home: home).execute
       items = result[:items]
 
       assert_equal(test_profiles.length, items.length)
@@ -23,7 +23,7 @@ class BraveAlfredTest < Minitest::Test
 
   def test_execute_launch_returns_items_with_brave_cli_launcher
     with_stub_profiles_in_home do |home|
-      result = BraveAlfred.new(command: BraveAlfred::LAUNCH, home: home).execute
+      result = BraveAlfred::Engine.new(command: BraveAlfred::LAUNCH, home: home).execute
       items = result[:items]
 
       test_profiles.each do |directory, name|
@@ -36,7 +36,7 @@ class BraveAlfredTest < Minitest::Test
 
   def test_execute_launch_with_url_returns_launcher_with_url
     with_stub_profiles_in_home do |home|
-      result = BraveAlfred.new(command: BraveAlfred::LAUNCH, home: home, param: test_url).execute
+      result = BraveAlfred::Engine.new(command: BraveAlfred::LAUNCH, home: home, param: test_url).execute
       items = result[:items]
 
       test_profiles.each do |directory, name|
@@ -49,7 +49,7 @@ class BraveAlfredTest < Minitest::Test
 
   def test_execute_launch_does_not_include_system_profile
     with_stub_profiles_in_home({ 'System Profile' => 'System'}) do |home|
-      result = BraveAlfred.new(command: BraveAlfred::LAUNCH, home: home).execute
+      result = BraveAlfred::Engine.new(command: BraveAlfred::LAUNCH, home: home).execute
       items = result[:items]
 
       assert_empty(items)
@@ -58,7 +58,7 @@ class BraveAlfredTest < Minitest::Test
 
   def test_execute_incognito_returns_items_with_brave_cli_incognito_launcher
     with_stub_profiles_in_home do |home|
-      result = BraveAlfred.new(command: BraveAlfred::INCOGNITO, home: home).execute
+      result = BraveAlfred::Engine.new(command: BraveAlfred::INCOGNITO, home: home).execute
       items = result[:items]
 
       test_profiles.each do |directory, name|

@@ -8,6 +8,7 @@ class BraveAlfred
   EXECUTABLE = '"/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"'
 
   LAUNCH = 'launch'
+  INCOGNITO = 'incognito'
 
   def initialize(command: LAUNCH, home: ENV['HOME'])
     @command = command
@@ -25,14 +26,14 @@ class BraveAlfred
   attr_reader :home, :command
 
   def create_items
-    return [] unless command == LAUNCH
+    return [] unless command == LAUNCH || command == INCOGNITO
 
     profiles
       .sort_by { |profile| profile.name }
       .map do |profile|
         {
           title: profile.name,
-          subtitle: "Open Brave Browser as #{profile.name}",
+          subtitle: subtitle_for(profile),
           arg: launcher_for(profile)
         }
     end
@@ -46,8 +47,16 @@ class BraveAlfred
        .map { |preference_path| Profile.from(preference_path) }
   end
 
+  def subtitle_for(profile)
+    base = "Open Brave Browser as #{profile.name}"
+    base += " in private" if command == INCOGNITO
+    base
+  end
+
   def launcher_for(profile)
-    "#{EXECUTABLE} --profile-directory=\"#{profile.directory}\""
+    base = "#{EXECUTABLE} --profile-directory=\"#{profile.directory}\""
+    base += " --incognito" if command == INCOGNITO
+    base
   end
 
   Profile = Struct.new(:name, :directory, keyword_init: true) do
